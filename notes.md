@@ -24,6 +24,14 @@ python内置库：deque
 
 最短路、最小生成树、拓扑排序
 
+# Python内置接口
+
+defaultdict, permutations
+
+deque, heaqp
+
+
+
 # 基础数据结构和算法
 
 ## 排序
@@ -139,9 +147,39 @@ while True:
 
 # 线性表
 
+## 单调队列
+
+### 例题
+
+#### 26978:滑动窗口最大值
+
+http://cs101.openjudge.cn/2024sp_routine/26978/
+
+https://leetcode.cn/problems/sliding-window-maximum/solutions/543426/hua-dong-chuang-kou-zui-da-zhi-by-leetco-ki6m/
+
+## 单调栈
+
+
+
 # 树
 
+## 树的三种遍历与层次遍历及其相互转化
 
+## 25145:猜二叉树
+
+http://cs101.openjudge.cn/2024sp_routine/25145/
+
+## 25140:根据后序表达式建立表达式树
+
+http://cs101.openjudge.cn/2024sp_routine/25140/
+
+## AVL树
+
+### 例题
+
+#### 27625:AVL树至少有几个结点
+
+http://cs101.openjudge.cn/2024sp_routine/27625/
 
 ## 并查集
 
@@ -361,6 +399,169 @@ for _ in range(int(input())):
         else:
             d.union(a, b + n)
             d.union(a + n, b)
+```
+
+## 拓扑排序
+
+拓扑排序是对有向无环图（DAG，Directed Acyclic Graph）的顶点进行排序的一种方法，使得对于图中的每条有向边 UV（从顶点 U 指向顶点 V），U 在排序中都出现在 V 之前。拓扑排序不是唯一的，一个有向无环图可能有多个有效的拓扑排序。
+
+拓扑排序常用的算法包括基于 DFS（深度优先搜索）的方法和基于 BFS（广度优先搜索，也称为Kahn算法）的方法。
+
+### 代码示例
+
+```python
+from collections import deque, defaultdict
+
+
+def topological_sort(vertices, edges):
+    # 计算所有顶点的入度
+    in_degree = {v: 0 for v in vertices}
+    graph = defaultdict(list)
+	
+    # u->v
+    for u, v in edges:
+        graph[u].append(v)
+        in_degree[v] += 1  # v的入度+1
+
+    # 将所有入度为0的顶点加入队列
+    queue = deque([v for v in vertices if in_degree[v] == 0])
+    sorted_order = []
+
+    while queue:
+        u = queue.popleft()
+        sorted_order.append(u)
+
+        # 对于每一个相邻顶点，减少其入度
+        for v in graph[u]:
+            in_degree[v] -= 1
+            # 如果入度减为0，则加入队列
+            if in_degree[v] == 0:
+                queue.append(v)
+
+    if len(sorted_order) != len(vertices):
+        return None  # 存在环，无法进行拓扑排序
+    return sorted_order
+
+
+# 示例使用
+vertices = ['A', 'B', 'C', 'D', 'E', 'F']
+edges = [('A', 'D'), ('F', 'B'), ('B', 'D'), ('F', 'A'), ('D', 'C')]
+result = topological_sort(vertices, edges)
+if result:
+    print("拓扑排序结果:", result)
+else:
+    print("图中有环，无法进行拓扑排序")
+```
+
+### 例题
+
+#### OJ04084:拓扑排序
+
+http://cs101.openjudge.cn/2024sp_routine/04084/
+
+拓扑排序，但是要求“同等条件下，编号小的顶点在前”，不得不把普通队列转换成一个优先队列了。
+
+```python
+from collections import deque, defaultdict
+import heapq
+
+def topo_sort(g, nv):
+    ans = []
+    deg = {v: 0 for v in range(1, nv+1)}
+    child = {v: [] for v in range(1, nv+1)}
+    for u, v in g:
+        # u->v
+        if v not in deg:
+            deg[v] = 1
+        else:
+            deg[v] += 1
+        if u not in child:
+            child[u] = [v]
+        else:
+            child[u].append(v)
+    q = [v for v in deg.keys() if deg[v] == 0]
+    heapq.heapify(q)
+    while q:
+        now = heapq.heappop(q)
+        ans.append(now)
+        for i in child[now]:
+            deg[i] -= 1
+            if deg[i] == 0:
+                heapq.heappush(q, i)
+
+    return ans
+v, a = map(int, input().split())
+g = []
+for _ in range(a):
+    x, y = map(int, input().split())
+    g.append([x, y])
+for i in topo_sort(g, v):
+    print('v' + str(i), end=' ')
+```
+
+#### OJ01094:Sorting It All Out
+
+http://cs101.openjudge.cn/dsapre/01094/
+
+此题要求每给出一条边就进行一次拓扑排序。首先判断给出的图有没有环，若拓扑排序后是否有顶点入度不为0，则有环。然后判断拓扑排序是否唯一，若同一时间队列长度大于1，则给出的条件不足以唯一确定拓扑排序。
+
+```python
+from collections import deque
+
+
+def topo_sort(g, nv):
+    ans = []
+    deg = {chr(i): 0 for i in range(65, 65 + nv)}
+    child = {chr(i): [] for i in range(65, 65 + nv)}
+    for u, v in g:
+        # u->v
+        if v in child[u]:
+            continue
+        deg[v] += 1
+        child[u].append(v)
+    q = deque([v for v in deg.keys() if deg[v] == 0])
+    not_determined = False
+    while q:
+        not_determined = len(q) >= 2 or not_determined
+        now = q.popleft()
+        ans.append(now)
+        for i in child[now]:
+            deg[i] -= 1
+            if deg[i] == 0:
+                q.append(i)
+    loop = False
+    for k, v in deg.items():
+        if v != 0:
+            loop = True
+            break
+    return ans, loop, not_determined
+
+
+while True:
+    v, a = map(int, input().split())
+    if v == 0 and a == 0:
+        break
+    g = []
+    sorted_seq = None
+    end = False
+    for _ in range(a):
+        x, y = map(str, input().split('<'))
+        if end:
+            continue
+        g.append([x, y])
+        sorted_seq, loop, not_determined = topo_sort(g, v)
+        if loop:
+            print(f'Inconsistency found after {_ + 1} relations.')
+            end = True
+        elif not not_determined:
+            print(f'Sorted sequence determined after {_ + 1} relations: ', end='')
+            for qq in sorted_seq:
+                print(qq, end='')
+            print('.')
+            end = True
+    if end:
+        continue
+    print('Sorted sequence cannot be determined.')
 ```
 
 # 图
