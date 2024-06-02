@@ -416,7 +416,7 @@ while not pq.empty():
 
 ## 二分查找
 
-### 04135:月度开销
+### OJ04135:月度开销
 
 http://cs101.openjudge.cn/2024sp_routine/04135/
 
@@ -449,7 +449,7 @@ while minmax < maxmax:
 print(maxmax)
 ```
 
-### 08210:河中跳房子
+### OJ08210:河中跳房子
 
 http://cs101.openjudge.cn/2024sp_routine/08210/
 
@@ -566,11 +566,105 @@ while True:
 
 # 线性表
 
+## 三种表达式的求值及相互转化
+
+求值：
+
+- 前序表达式（波兰表达式）：栈（最好**从右向左**读，但是反过来也可）
+- 后序表达式（逆波兰表达式）：栈（**从左向右**读）
+- 中序表达式：Shunting Yard Algorithm
+
+前序表达式和后序表达式向其他任何一种转化：建树
+
+中序表达式->后序表达式：Shunting Yard Algorithm+建树
+
+中序表达式->前序表达式：Shunting Yard Algorithm+建树
+
+### OJ24591: 中序表达式转后序表达式
+
+http://cs101.openjudge.cn/practice/24591/
+
+栈的经典题目，算法是Shunting Yard Algorithm，两个栈（实际上是一个），一个运算符栈，一个输出栈（这个不用栈保存，直接输出也可）
+
+但是用二叉树来说更好理解，叶节点是数字，非叶节点是运算符，需要把一个中序遍历转换为后序遍历
+
+一开始想把表达式建成二叉树，但是有点麻烦，而且之前在27637:括号嵌套二叉树等题目中练过了这种递归建树，就试着用栈写
+
+Shunting Yard Algorithm的理解：
+
+从左到右遍历中序表达式，
+
+若遇到数字，直接加到输出栈，因为后序遍历中，左右叶节点是最先的
+
+若遇到左括号，加入运算符栈，因为左括号是要建立单独的树，是运算符优先级的一种区分
+
+若遇到右括号，从最后一个开始，将运算符中的东西弹出并加入输出栈，直到遇到左括号，因为这代表这一整个子树的建立。
+
+若遇到运算符，则碰到了非叶节点，弹出栈中任何优先级比当前运算符更高或与当前运算符相等（优先级更高或相等代表子树深度小，所以先输出）的运算符，并将它们添加到输出队列中，然后将自己添加到运算符栈，等待右子树
+
+```python
+operators = ['+', '-', '*', '/']
+
+
+def is_num(s):
+    for i in operators + ['(', ')']:
+        if i in s:
+            return False
+    return True
+
+
+def process(raw_input):
+    # convert the raw input into separated sequence
+    temp, ans = '', []
+    for i in raw_input.strip():
+        if is_num(i):
+            temp += i
+        else:
+            if temp:
+                ans.append(temp)
+            ans.append(i)
+            temp = ''
+    if temp:
+        ans.append(temp)
+    return ans
+
+
+def infix_to_postfix(expression):
+    # Shunting Yard Algorithm
+    precedence = {'+': 1, '-': 1, '*': 2, '/': 2}
+    output_stack, op_stack = [], []
+    for i in expression:
+        if is_num(i):
+            output_stack.append(i)
+        elif i == '(':
+            op_stack.append(i)
+        elif i == ')':
+            while op_stack[-1] != '(':
+                output_stack.append(op_stack.pop())
+            op_stack.pop()
+        else:
+            while op_stack and op_stack[-1] in operators and precedence[i] <= precedence[op_stack[-1]]:
+                output_stack.append(op_stack.pop())
+            op_stack.append(i)
+    if op_stack:
+        output_stack += op_stack[::-1]
+    return output_stack
+
+
+n = int(input())
+for i in range(n):
+    tokenized = process(input())
+    print(' '.join(infix_to_postfix(tokenized)))
+
+```
+
+
+
 ## 单调队列
 
 例题
 
-### 26978:滑动窗口最大值
+### OJ26978:滑动窗口最大值
 
 http://cs101.openjudge.cn/2024sp_routine/26978/
 
@@ -578,27 +672,211 @@ https://leetcode.cn/problems/sliding-window-maximum/solutions/543426/hua-dong-ch
 
 ## 单调栈
 
-### 28203:【模板】单调栈
+### OJ28203:【模板】单调栈
 
 http://cs101.openjudge.cn/practice/28203/
+
+## 辅助栈
+
+### OJ22067:快速堆猪
+
+http://cs101.openjudge.cn/2024sp_routine/22067/
+
+```python
+a = []
+m = []
+
+while True:
+    try:
+        s = input().split()
+    
+        if s[0] == "pop":
+            if a:
+                a.pop()
+                if m:
+                    m.pop()
+        elif s[0] == "min":
+            if m:
+                print(m[-1])
+        else:
+            h = int(s[1])
+            a.append(h)
+            if not m:
+                m.append(h)
+            else:
+                k = m[-1]
+                m.append(min(k, h))
+    except EOFError:
+        break
+```
 
 # 树
 
 ## 树的四种遍历及其相互转化
 
-### 25145:猜二叉树
+给出二叉树的前序、中序、后序遍历中的两种，建树或者求出另外一种，算法实现麻烦但是思路简单。
 
-http://cs101.openjudge.cn/2024sp_routine/25145/
+树的bfs遍历（或者叫层次遍历，但是我不喜欢这个叫法）和队列有奇妙的联系，见例题
 
-### 25140:根据后序表达式建立表达式树
+### OJ22158:根据二叉树前中序序列建树
+
+http://cs101.openjudge.cn/2024sp_routine/22158/
+
+```python
+class Node:
+    def __init__(self, val, left=None, right=None):
+        self.val = val
+        self.left = left
+        self.right = right
+
+    def post_order(self):
+        post = ''
+        if self.left:
+            post += self.left.post_order()
+        if self.right:
+            post += self.right.post_order()
+        return post + self.val
+
+
+def build(pre_order, in_order):
+    if not pre_order or not in_order:
+        return None
+    #print(pre_order, in_order)
+    if len(pre_order) == 1:
+        return Node(pre_order[0])
+    root_val = pre_order[0]
+    div = 0
+    while in_order[div] != root_val:
+        div += 1
+    left_in_order = in_order[: div]
+    right_in_order = in_order[div+1:]
+    div = 1
+    while pre_order[div] in left_in_order:
+        div += 1
+        if div >= len(pre_order):
+            div = len(pre_order)
+            break
+    return Node(root_val, left=build(pre_order[1: div], left_in_order), right=build(pre_order[div:], right_in_order))
+
+
+while True:
+    try:
+        p, i = input(), input()
+        tree = build(p, i)
+        print(tree.post_order())
+    except EOFError:
+        break
+```
+
+### OJ24750:根据二叉树中后序序列建树
+
+http://cs101.openjudge.cn/dsapre/24750/
+
+```python
+class Node:
+    def __init__(self, val, left=None, right=None):
+        self.val = val
+        self.left = left
+        self.right = right
+
+    def post_order(self):
+        post = ''
+        if self.left:
+            post += self.left.post_order()
+        if self.right:
+            post += self.right.post_order()
+        return post + self.val
+
+
+def build(pre_order, in_order):
+    if not pre_order or not in_order:
+        return None
+    #print(pre_order, in_order)
+    if len(pre_order) == 1:
+        return Node(pre_order[0])
+    root_val = pre_order[0]
+    div = 0
+    while in_order[div] != root_val:
+        div += 1
+    left_in_order = in_order[: div]
+    right_in_order = in_order[div+1:]
+    div = 1
+    while pre_order[div] in left_in_order:
+        div += 1
+        if div >= len(pre_order):
+            div = len(pre_order)
+            break
+    return Node(root_val, left=build(pre_order[1: div], left_in_order), right=build(pre_order[div:], right_in_order))
+
+
+def build_tree(inorder, postorder):
+    if not inorder or not postorder:
+        return []
+
+    root_val = postorder[-1]
+    root_index = inorder.index(root_val)
+
+    left_inorder = inorder[:root_index]
+    right_inorder = inorder[root_index + 1:]
+
+    left_postorder = postorder[:len(left_inorder)]
+    right_postorder = postorder[len(left_inorder):-1]
+
+    root = [root_val]
+    root.extend(build_tree(left_inorder, left_postorder))
+    root.extend(build_tree(right_inorder, right_postorder))
+
+    return root
+
+
+def main():
+    inorder = input().strip()
+    postorder = input().strip()
+    preorder = build_tree(inorder, postorder)
+    print(''.join(preorder))
+
+
+if __name__ == "__main__":
+    main()
+```
+
+### OJ25140:根据后序表达式建立表达式树
 
 http://cs101.openjudge.cn/2024sp_routine/25140/
 
-## AVL树
+```python
+class Node:
+    def __init__(self, name, left=None, right=None):
+        self.name = name
+        self.left = left
+        self.right = right
 
-### 27625:AVL树至少有几个结点
 
-http://cs101.openjudge.cn/2024sp_routine/27625/
+def build(s):
+    stack = []
+    for i in s:
+        if ord(i) > ord('Z'):
+            stack.append(Node(i))
+        else:
+            r, l = stack.pop(), stack.pop()
+            stack.append(Node(i, l, r))
+    return stack[0]
+
+
+for _ in range(int(input())):
+    s = input()
+    tree = build(s)
+    bfs = [tree]
+    ans = ''
+    while bfs:
+        now = bfs.pop(0)
+        ans += now.name
+        if now.left:
+            bfs.append(now.left)
+        if now.right:
+            bfs.append(now.right)
+    print(ans[::-1])
+```
 
 ## 并查集
 
@@ -869,6 +1147,147 @@ for _ in range(k):
 print(cnt)
 ```
 
+## Trie（字典树）
+
+### OJ04089:电话号码
+
+```python
+def build_trie(s, parent: dict):
+    if s[0] in parent.keys():
+        if len(s) == 1:
+            return False
+        if not parent[s[0]]:
+            return False
+        return build_trie(s[1:], parent[s[0]])
+    parent[s[0]] = {}
+    if len(s) == 1:
+        return True
+    return build_trie(s[1:], parent[s[0]])
+t = int(input())
+for i in range(t):
+    trie = {}
+    n = int(input())
+    flag = False
+    for j in range(n):
+        number = input()
+        if flag:
+            continue
+        if not build_trie(number, trie):
+            print('NO')
+            flag = True
+    if not flag:
+        print('YES')
+```
+
+## 堆
+
+堆（Heap）是一种特别的完全二叉树。所有的节点都大于等于（最大堆）或小于等于（最小堆）每个它的子节点。本文将主要讨论最小堆的实现，其中每个父节点的值都小于或等于其子节点的值。
+
+最小堆的实现原理
+
+最小堆通常可以用一个数组来实现，利用数组的索引来模拟树结构：
+
+- 根节点位于数组的第一个位置，即 `index = 0`。
+- 对于任意位于index = i的节点：
+  - 其左子节点的位置是 `2 * i + 1`
+  - 其右子节点的位置是 `2 * i + 2`
+  - 其父节点的位置是 `(i - 1) / 2`（这里的除法为整数除法）
+
+最小堆的核心操作
+
+1. **插入操作（Add）**
+   - 将新元素添加到数组的末尾。
+   - 从这个新元素开始，向上调整堆，以保持最小堆的性质。这通常被称为“上浮”（bubble up或percolate up），即如果添加的元素小于其父节点，则与父节点交换位置，重复这一过程直到恢复堆的性质或者该节点成为根节点。
+2. **删除最小元素（Extract Min）**
+   - 最小元素总是位于数组的第一个位置。
+   - 将数组最后一个元素移动到第一个位置，然后从根节点开始向下调整堆（下沉或percolate down）。如果父节点大于任一子节点，则与最小的子节点交换位置，重复这一过程直到恢复堆的性质或者该节点成为叶节点。
+3. **获取最小元素（Find Min）**
+   - 由于最小元素总是位于数组的第一位置，因此获取最小元素非常高效，时间复杂度为 O(1)。
+4. **堆化（Heapify）**
+   - 将一个不满足最小堆性质的数组转换成最小堆。这通常通过从最后一个非叶子节点开始，依次对每个节点执行“下沉”操作来实现。非叶子节点的开始位置可以从 `n/2 - 1` 开始（`n` 是数组长度），这是因为所有更后面的节点都是叶子节点，已经满足堆的性质。
+
+性能
+
+- 插入和删除操作的时间复杂度通常是 O(log n)，因为需要在树的高度上进行操作（上浮或下沉），而树的高度与节点数的对数成正比。
+- 堆化操作的时间复杂度是 O(n)，这是通过精心构造的下沉操作实现的，虽然看起来每个节点都要处理，但实际上更深的节点较少，处理起来也更快。
+
+### OJ04078:实现堆结构
+
+手动实现最小堆
+
+```python
+from math import floor as floor
+
+
+class MinHeap:
+    def __init__(self):
+        self.value = []
+
+    def get_min(self):
+        if not self.value:
+            return None
+        return self.value[0]
+
+    def swap(self, a, b):
+        self.value[a], self.value[b] = self.value[b], self.value[a]
+
+    def insert(self, x):
+        self.value.append(x)
+        index = len(self.value) - 1
+        while True:
+            parent_index = floor((index - 1) / 2)
+            if index <= 0 or self.value[parent_index] <= self.value[index]:
+                return
+            self.swap(index, parent_index)
+            index = parent_index
+
+    def delete_min(self):
+        if not self.value:
+            return
+        self.swap(0, -1)
+        self.value.pop()
+        index = 0
+        while index < len(self.value):
+            left_index, right_index = 2 * index + 1, 2 * index + 2
+            if left_index >= len(self.value):
+                return
+            if right_index >= len(self.value):
+                if self.value[index] > self.value[left_index]:
+                    self.swap(index, left_index)
+                    continue
+                else:
+                    return
+            if self.value[index] < min(self.value[left_index], self.value[right_index]):
+                return
+            small = left_index if self.value[left_index] < self.value[right_index] else right_index
+            self.swap(small, index)
+            index = small
+
+
+heap = MinHeap()
+for i in range(int(input())):
+    s = input()
+    if s[0] == '1':
+        heap.insert(int(s[2:]))
+    else:
+        print(heap.get_min())
+        heap.delete_min()
+```
+
+## Huffman树
+
+### OJ22161:哈夫曼编码树
+
+http://cs101.openjudge.cn/practice/22161/
+
+## AVL树
+
+### OJ27625:AVL树至少有几个结点
+
+http://cs101.openjudge.cn/2024sp_routine/27625/
+
+# 图
+
 ## 拓扑排序
 
 拓扑排序是对有向无环图（DAG，Directed Acyclic Graph）的顶点进行排序的一种方法，使得对于图中的每条有向边 UV（从顶点 U 指向顶点 V），U 在排序中都出现在 V 之前。拓扑排序不是唯一的，一个有向无环图可能有多个有效的拓扑排序。
@@ -1067,8 +1486,6 @@ for _ in range(int(input())):
     topo(g, deg, v)
 ```
 
-# 图
-
 ## Dijkstra
 
 ### 代码示例
@@ -1228,3 +1645,145 @@ for _ in range(r):
 p = dij(g, 1, n)
 print(p)
 ```
+
+### OJ02502:Subway
+
+乍一看有点难，但实际上就是模板题。暴力把所有点之间全连上一条路径，然后把通地铁的车站的路径的代价设置小点（实际上在我的实现中，是多连了一条代价更小的路径，但是dijkstra算法可以容忍这一点）
+
+```python
+import heapq
+
+
+def hash(x, y):
+    return str(x) + ' ' + str(y)
+
+
+x0, y0, x1, y1 = map(int, input().split())
+g = {}
+all_v = [(x0, y0), (x1, y1)]
+subways = []
+
+
+def d(a, b, c, d):
+    return ((a - c) ** 2 + (b - d) ** 2) ** 0.5
+
+
+while True:
+    try:
+        lst = list(map(int, input().split()))[:-2]
+    except EOFError:
+        break
+    v = []
+    for i in range(0, len(lst), 2):
+        x, y = lst[i], lst[i + 1]
+        v.append([x, y])
+        all_v.append([x, y])
+    subways.append(v)
+for i in range(len(all_v) - 1):
+    for j in range(i + 1, len(all_v)):
+        sx, sy = all_v[i]
+        ex, ey = all_v[j]
+        dd = d(sx, sy, ex, ey) / (10 / 3.6) / 60
+        if hash(sx, sy) in g.keys():
+            g[hash(sx, sy)].append([dd, ex, ey])
+        else:
+            g[hash(sx, sy)] = [[dd, ex, ey]]
+        if hash(ex, ey) in g.keys():
+            g[hash(ex, ey)].append([dd, sx, sy])
+        else:
+            g[hash(ex, ey)] = [[dd, sx, sy]]
+for j in subways:
+    for i in range(len(j) - 1):
+        sx, sy = j[i]
+        ex, ey = j[i + 1]
+        dd = d(sx, sy, ex, ey) / (40 / 3.6) / 60
+        g[hash(sx, sy)].append([dd, ex, ey])
+        g[hash(ex, ey)].append([dd, sx, sy])
+
+
+def dij():
+    dis = {hash(x, y): float('inf') for x, y in all_v}
+    dis[hash(x0, y0)] = 0
+    q = [(0, x0, y0)]
+    heapq.heapify(q)
+    while q:
+        distance, nowx, nowy = heapq.heappop(q)
+        if distance > dis[hash(nowx, nowy)]:
+            continue
+        for newd, tx, ty in g[hash(nowx, nowy)]:
+            if newd + distance < dis[hash(tx, ty)]:
+                dis[hash(tx, ty)] = newd + distance
+                heapq.heappush(q, (newd + distance, tx, ty))
+    return dis[hash(x1, y1)]
+
+
+print(round(dij()))
+```
+
+## 最小生成树（Prim算法、Kruskal算法）
+
+两种算法，Prim，Kruskal
+
+求解最小生成树（Minimum Spanning Tree, MST）的问题在图论中非常重要，尤其是在设计和优化网络、路由算法以及集群分析等领域。最小生成树是一个无向图的生成树，它包括图中所有的顶点，并且选取的边的总权重最小。以下是几种常用的求解最小生成树的算法：
+
+1. Kruskal算法
+
+- **基本思想**：Kruskal算法是一种基于边的贪心算法。它的核心思想是按照边的权重从小到大的顺序选择边，但在选择的同时必须保证不形成环。
+
+- 步骤
+
+  ：
+
+  1. 将所有边按权重从小到大排序。
+  2. 初始化一个空的最小生成树。
+  3. 依次考虑排序后的每条边，如果加入这条边不会与已选的边形成环（可以用并查集来检测），则将其加入到最小生成树中。
+  4. 重复上一步，直到最小生成树中含有 *V*−1 条边，其中 *V* 是图中顶点的数量。
+
+- **复杂度**：如果使用优化的并查集，复杂度可以达到 O*(*E*log**E*) 或 *O*(*E*log*V*)。
+
+2. Prim算法
+
+- **基本思想**：Prim算法是基于顶点的贪心算法。它从任意顶点开始，逐渐增加边和顶点，直到包括所有顶点。
+
+- 步骤
+
+  ：
+
+  1. 选择任意一个顶点作为起始点。
+  2. 使用一个优先队列来维护可选择的边（根据边的权重）。
+  3. 从优先队列中选择一条权重最小的边，如果这条边连接的顶点还未被加入最小生成树，则将此顶点及边加入树中。
+  4. 更新优先队列，重复上述过程，直到所有顶点都被加入。
+
+- **复杂度**：使用优先队列（如二叉堆），复杂度为 O*(*E*log*V*)。
+
+### OJ01258:Agri-Net
+
+http://cs101.openjudge.cn/practice/01258/
+
+```python
+import heapq
+
+while True:
+    try:
+        n = int(input())
+    except EOFError:
+        break
+    visited = {0}
+    m_cost = 0
+    g = [list(map(int, input().split())) for _ in range(n)]
+    edges = [(cost, 0, to) for to, cost in enumerate(g[0])]
+    heapq.heapify(edges)
+    while edges:
+        cost, frm, to = heapq.heappop(edges)
+        if to not in visited:
+            visited.add(to)
+            m_cost += cost
+            for neighbor, next_cost in enumerate(g[to]):
+                if neighbor not in visited:
+                    heapq.heappush(edges, (next_cost, to, neighbor))
+    print(m_cost)
+```
+
+### OJ05442:兔子与星空
+
+http://cs101.openjudge.cn/practice/05442/
