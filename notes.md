@@ -463,20 +463,69 @@ http://cs101.openjudge.cn/2024sp_routine/08210/
 
 - **最坏情况**: *O*(*n*log*n*)
 - **平均情况**: *O*(*n*log*n*)
-- **最优情况**: O*(*n*log*n*)
+- **最优情况**: O*(*n*log*n)
 
 - **空间复杂度**: O(n) — 需要额外的内存空间来存储临时数组。
 
 - **稳定性**: 稳定 — 相同元素的相对顺序在排序后不会改变。
-
-代码示例
 
 应用
 
 - **计算逆序对数**：在一个数组中，如果前面的元素大于后面的元素，则这两个元素构成一个逆序对。归并排序可以在排序过程中修改并计算逆序对的总数。这通过在归并过程中，每当右侧的元素先于左侧的元素被放置到结果数组时，记录左侧数组中剩余元素的数量来实现。
 - **排序链表**：归并排序在链表排序中特别有用，因为它可以实现在链表中的有效排序而不需要额外的空间，这是由于链表的节点可以通过改变指针而不是实际移动节点来重新排序。
 
+### 代码示例
 
+对链表进行排序
+
+```python
+class ListNode:
+    def __init__(self, value=0, next=None):
+        self.value = value
+        self.next = next
+
+
+def split_list(head):
+    if not head or not head.next:
+        return head
+
+    # 使用快慢指针找到中点
+    slow = head
+    fast = head.next  # fast 从 head.next 开始确保分割平均
+    while fast and fast.next:
+        slow = slow.next
+        fast = fast.next.next
+
+    # 分割链表为两部分
+    mid = slow.next
+    slow.next = None
+
+    return head, mid
+
+
+def merge_sort(head):
+    if not head or not head.next:
+        return head
+
+    left, right = split_list(head)
+    left = merge_sort(left)
+    right = merge_sort(right)
+    return merge_lists(left, right)
+
+
+# 创建链表：4 -> 2 -> 1 -> 3
+head = ListNode(4, ListNode(2, ListNode(1, ListNode(3))))
+
+# 排序链表
+sorted_head = merge_sort(head)
+
+# 打印排序后的链表
+current = sorted_head
+while current:
+    print(current.value, end=" -> ")
+    current = current.next
+print("None")
+```
 
 ### **OJ02299:Ultra-QuickSort**
 
@@ -542,25 +591,73 @@ while True:
 
 时间复杂度
 
-- **最坏情况**: �(�2)*O*(*n*2) — 通常发生在已经排序的数组或基准选择不佳的情况下。
-- **平均情况**: �(�log⁡�)*O*(*n*log*n*)
-- **最优情况**: �(�log⁡�)*O*(*n*log*n*) — 适当的基准可以保证分割平衡。
+- **最坏情况**: O*(*n2) — 通常发生在已经排序的数组或基准选择不佳的情况下。
+- **平均情况**: O*(*n*log*n)
+- **最优情况**: *O*(*n*log*n*) — 适当的基准可以保证分割平衡。
 
-- **空间复杂度**: �(log⁡�)*O*(log*n*) — 主要是递归的栈空间。
+- **空间复杂度**: *O*(log*n*) — 主要是递归的栈空间。
 
 - **稳定性**: 不稳定 — 基准点的选择和划分过程可能会改变相同元素的相对顺序。
 
 应用：k-th元素
 
+### 代码示例
+
+普通快排
+
+```python
+def quicksort(arr):
+    if len(arr) <= 1:
+        return arr
+    else:
+        pivot = arr[-1]
+        less = [x for x in arr[:-1] if x <= pivot]
+        greater = [x for x in arr[:-1] if x > pivot]
+        return quicksort(less) + [pivot] + quicksort(greater)
+
+# 示例数组
+array = [10, 7, 8, 9, 1, 5]
+sorted_array = quicksort(array)
+print(sorted_array)
+```
+
+在无序列表中选择第k大
+
+```python
+def partition(nums, left, right):
+    pivot = nums[right]
+    i = left
+    for j in range(left, right):
+        if nums[j] > pivot:  # 注意这里是寻找第k大，所以使用大于号
+            nums[i], nums[j] = nums[j], nums[i]
+            i += 1
+    nums[i], nums[right] = nums[right], nums[i]
+    return i
+
+def quickselect(nums, left, right, k):
+    if left == right:
+        return nums[left]
+    pivot_index = partition(nums, left, right)
+    if k == pivot_index:
+        return nums[k]
+    elif k < pivot_index:
+        return quickselect(nums, left, pivot_index - 1, k)
+    else:
+        return quickselect(nums, pivot_index + 1, right, k)
+
+def find_kth_largest(nums, k):
+    return quickselect(nums, 0, len(nums) - 1, k - 1)
+```
+
 ## 堆排序（Heap Sort）
 
 时间复杂度
 
-- **最坏情况**: �(�log⁡�)*O*(*n*log*n*)
-- **平均情况**: �(�log⁡�)*O*(*n*log*n*)
-- **最优情况**: �(�log⁡�)*O*(*n*log*n*)
+- **最坏情况**: O*(*n*log*n)
+- **平均情况**: O*(*n*log*n)
+- **最优情况**: O*(*n*log*n)
 
-- **空间复杂度**: �(1)*O*(1) — 堆排序是原地排序算法，不需要额外的存储空间。
+- **空间复杂度**: O(1) — 堆排序是原地排序算法，不需要额外的存储空间。
 
 - **稳定性**: 不稳定 — 堆的维护过程可能会改变相同元素的原始相对顺序。
 
@@ -709,6 +806,16 @@ while True:
     except EOFError:
         break
 ```
+
+## 散列表
+
+### 17968:整型关键字的散列映射
+
+http://cs101.openjudge.cn/2024sp_routine/17968/
+
+### 17975:用二次探查法建立散列表
+
+http://cs101.openjudge.cn/2024sp_routine/17975/
 
 # 树
 
@@ -1288,7 +1395,7 @@ http://cs101.openjudge.cn/2024sp_routine/27625/
 
 # 图
 
-## 拓扑排序
+## 拓扑排序及Kahn算法
 
 拓扑排序是对有向无环图（DAG，Directed Acyclic Graph）的顶点进行排序的一种方法，使得对于图中的每条有向边 UV（从顶点 U 指向顶点 V），U 在排序中都出现在 V 之前。拓扑排序不是唯一的，一个有向无环图可能有多个有效的拓扑排序。
 
@@ -1486,7 +1593,7 @@ for _ in range(int(input())):
     topo(g, deg, v)
 ```
 
-## Dijkstra
+## Dijkstra算法
 
 ### 代码示例
 
@@ -1730,30 +1837,26 @@ print(round(dij()))
 
 - **基本思想**：Kruskal算法是一种基于边的贪心算法。它的核心思想是按照边的权重从小到大的顺序选择边，但在选择的同时必须保证不形成环。
 
-- 步骤
-
-  ：
+- 步骤：
 
   1. 将所有边按权重从小到大排序。
   2. 初始化一个空的最小生成树。
   3. 依次考虑排序后的每条边，如果加入这条边不会与已选的边形成环（可以用并查集来检测），则将其加入到最小生成树中。
   4. 重复上一步，直到最小生成树中含有 *V*−1 条边，其中 *V* 是图中顶点的数量。
-
-- **复杂度**：如果使用优化的并查集，复杂度可以达到 O*(*E*log**E*) 或 *O*(*E*log*V*)。
+  
+- **复杂度**：如果使用优化的并查集，复杂度可以达到 O*(*ElogE) 或 *O*(*E*log*V*)。
 
 2. Prim算法
 
 - **基本思想**：Prim算法是基于顶点的贪心算法。它从任意顶点开始，逐渐增加边和顶点，直到包括所有顶点。
 
-- 步骤
-
-  ：
+- 步骤：
 
   1. 选择任意一个顶点作为起始点。
   2. 使用一个优先队列来维护可选择的边（根据边的权重）。
   3. 从优先队列中选择一条权重最小的边，如果这条边连接的顶点还未被加入最小生成树，则将此顶点及边加入树中。
   4. 更新优先队列，重复上述过程，直到所有顶点都被加入。
-
+  
 - **复杂度**：使用优先队列（如二叉堆），复杂度为 O*(*E*log*V*)。
 
 ### OJ01258:Agri-Net
@@ -1787,3 +1890,92 @@ while True:
 ### OJ05442:兔子与星空
 
 http://cs101.openjudge.cn/practice/05442/
+
+### OJ01798:Truck History
+
+http://cs101.openjudge.cn/2024sp_routine/01798/
+
+## 强连通分量与Kosaraju算法
+
+是一个用于寻找有向图中所有强连通分量（Strongly Connected Components，SCC）的高效算法。一个强连通分量是最大的子图，其中任何两个顶点都是双向可达的。这个算法的时间复杂度为 �(�+�)*O*(*V*+*E*)，其中 �*V* 是顶点数，�*E* 是边数。
+
+算法步骤
+
+Kosaraju's 算法包括以下几个步骤：
+
+第一步：对原图进行深度优先搜索（DFS）
+
+1. 从任意未访问过的顶点开始，对原始图进行一次深度优先搜索。
+2. 每次完成一个顶点的DFS遍历后，将该顶点推入一个栈中。这样做的目的是按照完成时间的顺序保存顶点，确保在进行第二次DFS时，我们从一个SCC的源点（或接近源点）开始。
+
+第二步：获取转置图
+
+1. 将原图的所有边反向，得到转置图。转置图的意思是如果原图中有一条从 �*u* 到 �*v* 的有向边，那么在转置图中就有一条从 �*v* 到 �*u* 的边。
+
+第三步：对转置图进行DFS
+
+1. 依次从栈中弹出顶点，如果该顶点未被访问过，就以该顶点为起点，对转置图进行DFS。
+2. 每次从一个顶点开始的DFS可以访问到的所有顶点，都属于同一个强连通分量。
+3. 记录下每次DFS访问到的所有顶点，它们组成了一个强连通分量。
+
+算法正确性的关键
+
+- 第一次DFS帮助我们了解每个顶点的完成时间。在转置图中，我们按照原图的完成时间逆序（即最晚完成的顶点最先处理）来处理每个顶点，这样可以保证每当开始一个新的DFS时，我们都是从另一个SCC的源点开始的。
+- 在转置图中，如果从顶点 �*u* 可以到达顶点 �*v*，那么在原图中，从 �*v* 也能到达 �*u*。因此，第二次DFS实际上是在追踪原图中每个SCC的边界。
+
+### 代码示例
+
+以下是使用Python实现Kosaraju's算法的基本框架：
+
+```python
+def dfs(graph, v, visited, stack):
+    visited[v] = True
+    for neighbour in graph[v]:
+        if not visited[neighbour]:
+            dfs(graph, neighbour, visited, stack)
+    stack.append(v)
+
+def dfs_util(graph, v, visited):
+    visited[v] = True
+    print(v, end=' ')
+    for neighbour in graph[v]:
+        if not visited[neighbour]:
+            dfs_util(graph, neighbour, visited)
+
+def kosaraju(graph, vertices):
+    stack = []
+    visited = [False] * vertices
+
+    # Step 1: Fill vertices in stack according to their finishing times
+    for i in range(vertices):
+        if not visited[i]:
+            dfs(graph, i, visited, stack)
+
+    # Step 2: Create a reversed graph
+    rev_graph = [[] for _ in range(vertices)]
+    for v in range(vertices):
+        for neighbour in graph[v]:
+            rev_graph[neighbour].append(v)
+
+    # Step 3: Process all vertices in order defined by Stack
+    visited = [False] * vertices
+    while stack:
+        v = stack.pop()
+        if not visited[v]:
+            print("SCC: ", end='')
+            dfs_util(rev_graph, v, visited)
+            print()
+
+# Example usage
+graph = [
+    [1],        # 0 -> 1
+    [2],        # 1 -> 2
+    [0, 3],     # 2 -> 0, 3
+    [4],        # 3 -> 4
+    [5],        # 4 -> 5
+    [3]         # 5 -> 3
+]
+kosaraju(graph, 6)
+```
+
+这段代码首先实现了一个DFS来填充栈，然后创建一个转置图，最后再根据栈中顶点的顺序对转置图执行DFS来找到所有的强连通分量。
